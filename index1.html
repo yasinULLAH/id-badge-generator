@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ID Generator</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; transition: all 0.3s; }
+.dark-mode { background-color: #222; color: #fff; }
+.container { max-width: 1200px; margin: 0 auto; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.toggles { display: flex; gap: 10px; }
+.card { background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
+.dark-mode .card { background: #333; }
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+.form-group { margin-bottom: 15px; }
+label { display: block; margin-bottom: 5px; font-weight: bold; }
+input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+.dark-mode input, .dark-mode select, .dark-mode textarea { background: #444; color: #fff; border-color: #555; }
+button { padding: 8px 15px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+button:hover { background: #45a049; }
+.preview-container { display: flex; gap: 20px; flex-wrap: wrap; }
+.id-card {
+    width: 374px;
+    height: 230px;
+    border: 1px solid #ddd;
+    padding: 15px;
+    background: white;
+    position: relative;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+.id-card-back { width: 374px; height: 230px; border: 1px solid #ddd; padding: 15px; background: #f9f9f9; position: relative; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+.id-photo { width: 80px; height: 80px; border: 1px solid #ddd; position: absolute; right: 15px; top: 15px; background: #eee; }
+.id-logo { width: 50px; height: 50px; position: absolute; left: 15px; top: 15px; }
+.id-title { text-align: center; margin-bottom: 10px; font-weight: bold; font-size: 18px; }
+.id-details { display: grid; grid-template-columns: 100px 1fr; gap: 5px; }
+.id-number { position: absolute; bottom: 10px; right: 15px; font-size: 12px; }
+.id-barcode { position: absolute; bottom: 10px; left: 15px; width: 100px; height: 30px; background: #000; }
+.saved-ids { margin-top: 20px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #f2f2f2; }
+.dark-mode th { background-color: #444; }
+.urdu { font-family: 'Jameel Noori Nastaleeq', 'Urdu Typesetting', sans-serif; direction: rtl; text-align: right; }
+.hidden { display: none; }
+* {
+  font-family: 'Jameel Noori Nastaleeq', 'Urdu Typesetting', sans-serif;
+}
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Documents</div>
+                <div class="sidebar-title urdu">دستاویزات</div>
+                <button id="new-paper-btn" data-lang="en">New Paper</button>
+                <button id="new-paper-btn-ur" class="urdu" data-lang="ur">نیا پیپر</button>
+                <button id="open-papers-btn" data-lang="en">Open Papers</button>
+                <button id="open-papers-btn-ur" class="urdu" data-lang="ur">پیپرز کھولیں</button>
+                <button id="templates-btn" data-lang="en">Templates</button>
+                <button id="templates-btn-ur" class="urdu" data-lang="ur">ٹیمپلیٹس</button>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Actions</div>
+                <div class="sidebar-title urdu">اعمال</div>
+                <button id="save-btn" data-lang="en">Save Paper</button>
+                <button id="save-btn-ur" class="urdu" data-lang="ur">پیپر محفوظ کریں</button>
+                <button id="print-btn" data-lang="en">Print / PDF</button>
+                <button id="print-btn-ur" class="urdu" data-lang="ur">پرنٹ / پی ڈی ایف</button>
+                <button id="preview-btn" data-lang="en">Preview</button>
+                <button id="preview-btn-ur" class="urdu" data-lang="ur">پیش نظارہ</button>
+                <button id="backup-btn" data-lang="en">Backup / Restore</button>
+                <button id="backup-btn-ur" class="urdu" data-lang="ur">بیک اپ / بحال کریں</button>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Settings</div>
+                <div class="sidebar-title urdu">ترتیبات</div>
+                <div class="form-group">
+                    <div class="toggle-container">
+                        <span data-lang="en">Dark Mode</span>
+                        <span data-lang="ur" class="urdu">ڈارک موڈ</span>
+                        <label class="switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="toggle-container">
+                        <span data-lang="en">Language: English</span>
+                        <span data-lang="ur" class="urdu">زبان: اردو</span>
+                        <label class="switch">
+                            <input type="checkbox" id="language-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="page-size" data-lang="en">Page Size</label>
+                    <label for="page-size" class="urdu" data-lang="ur">صفحہ کا سائز</label>
+                    <select id="page-size">
+                        <option value="a4">A4</option>
+                        <option value="letter">Letter</option>
+                        <option value="legal">Legal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="margin-size" data-lang="en">Margins (mm)</label>
+                    <label for="margin-size" class="urdu" data-lang="ur">مارجن (ملی میٹر)</label>
+                    <input type="number" id="margin-size" value="20" min="0" max="50">
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="header">
+                <div class="logo">PaperMaker</div>
+                <div class="logo urdu">پیپر میکر</div>
+                <div>
+                    <button id="help-btn" data-lang="en">Help</button>
+                    <button id="help-btn-ur" class="urdu" data-lang="ur">مدد</button>
+                </div>
+            </div>
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <button id="bold-btn" title="Bold"><b>B</b></button>
+                    <button id="italic-btn" title="Italic"><i>I</i></button>
+                    <button id="underline-btn" title="Underline"><u>U</u></button>
+                </div>
+                <div class="toolbar-group">
+                    <select id="heading-select">
+                        <option value="">Paragraph</option>
+                        <option value="h1">Heading 1</option>
+                        <option value="h2">Heading 2</option>
+                        <option value="h3">Heading 3</option>
+                    </select>
+                </div>
+                <div class="toolbar-group">
+                    <button id="align-left-btn" title="Align Left">⇤</button>
+                    <button id="align-center-btn" title="Align Center">⇔</button>
+                    <button id="align-right-btn" title="Align Right">⇥</button>
+                    <button id="align-justify-btn" title="Justify">≡</button>
+                </div>
+                <div class="toolbar-group">
+                    <button id="bullet-list-btn" title="Bullet List">- </button>
+                    <button id="number-list-btn" title="Number List">1.</button>
+                </div>
+                <div class="toolbar-group">
+                    <button id="add-section-btn" title="Add Section">+ Section</button>
+                    <button id="add-image-btn" title="Add Image">+ Image</button>
+                </div>
+                <div class="toolbar-group">
+                    <select id="font-family">
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="Times New Roman, serif">Times New Roman</option>
+                        <option value="Courier New, monospace">Courier New</option>
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="Verdana, sans-serif">Verdana</option>
+                        <option value="Jameel Noori Nastaleeq, serif">Jameel Noori Nastaleeq</option>
+                    </select>
+                    <select id="font-size">
+                        <option value="8pt">8pt</option>
+                        <option value="10pt">10pt</option>
+                        <option value="12pt" selected>12pt</option>
+                        <option value="14pt">14pt</option>
+                        <option value="16pt">16pt</option>
+                        <option value="18pt">18pt</option>
+                        <option value="24pt">24pt</option>
+                        <option value="36pt">36pt</option>
+                    </select>
+                    <div class="color-picker">
+                        <input type="color" id="text-color" value="#000000">
+                    </div>
+                </div>
+                <div class="toolbar-group">
+                    <select id="line-spacing">
+                        <option value="1">Single</option>
+                        <option value="1.15">1.15</option>
+                        <option value="1.5">1.5</option>
+                        <option value="2">Double</option>
+                    </select>
+                </div>
+            </div>
+            <div class="editor-container">
+                <div class="paper">
+                    <div class="editor-header" contenteditable="true"></div>
+                    <div id="editor" class="editor" contenteditable="true"></div>
+                    <div class="editor-footer" contenteditable="true"></div>
+                    <div>
+                        <input type="text" id="paper-title" placeholder="Title" class="editor">
+                        <input type="text" id="paper-author" placeholder="Author" class="editor">
+                        <input type="date" id="paper-date" class="editor">
+                    </div>
+                </div>
+            </div>
+            <div class="status-bar">
+                <div id="word-count" data-lang="en">Words: 0 | Characters: 0</div>
+                <div id="word-count-ur" class="urdu" data-lang="ur">الفاظ: 0 | حروف: 0</div>
+                <div id="auto-save-status" data-lang="en">Auto-saved: Never</div>
+                <div id="auto-save-status-ur" class="urdu" data-lang="ur">آٹو سیو: کبھی نہیں</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="open-papers-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" data-lang="en">Open Paper</div>
+                <div class="modal-title urdu" data-lang="ur">پیپر کھولیں</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="search-papers" placeholder="Search papers..." data-lang="en">
+                <input type="text" id="search-papers-ur" placeholder="پیپرز تلاش کریں..." class="urdu" data-lang="ur">
+            </div>
+            <div id="papers-list"></div>
+        </div>
+    </div>
+
+    <div id="templates-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" data-lang="en">Templates</div>
+                <div class="modal-title urdu" data-lang="ur">ٹیمپلیٹس</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="templates-list">
+                <div class="template-item" data-template="essay">
+                    <div class="template-title" data-lang="en">Essay</div>
+                    <div class="template-title urdu" data-lang="ur">مضمون</div>
+                    <div class="template-desc" data-lang="en">Standard essay format with introduction, body, and conclusion.</div>
+                    <div class="template-desc urdu" data-lang="ur">تعارف، مرکزی حصہ اور اختتام کے ساتھ معیاری مضمون کا فارمیٹ۔</div>
+                </div>
+                <div class="template-item" data-template="notes">
+                    <div class="template-title" data-lang="en">Notes</div>
+                    <div class="template-title urdu" data-lang="ur">نوٹس</div>
+                    <div class="template-desc" data-lang="en">Simple format for taking notes with bullet points.</div>
+                    <div class="template-desc urdu" data-lang="ur">بلٹ پوائنٹس کے ساتھ نوٹس لینے کے لیے سادہ فارمیٹ۔</div>
+                </div>
+                <div class="template-item" data-template="assignment">
+                    <div class="template-title" data-lang="en">Assignment</div>
+                    <div class="template-title urdu" data-lang="ur">اسائنمنٹ</div>
+                    <div class="template-desc" data-lang="en">Academic assignment with title page, sections, and references.</div>
+                    <div class="template-desc urdu" data-lang="ur">ٹائٹل پیج، سیکشنز اور حوالہ جات کے ساتھ تعلیمی اسائنمنٹ۔</div>
+                </div>
+                <div class="template-item" data-template="test">
+                    <div class="template-title" data-lang="en">Test Paper</div>
+                    <div class="template-title urdu" data-lang="ur">ٹیسٹ پیپر</div>
+                    <div class="template-desc" data-lang="en">Exam paper with multiple sections for different question types.</div>
+                    <div class="template-desc urdu" data-lang="ur">مختلف سوالات کی اقسام کے لیے متعدد حصوں کے ساتھ امتحانی پرچہ۔</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="backup-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" data-lang="en">Backup & Restore</div>
+                <div class="modal-title urdu" data-lang="ur">بیک اپ اور بحالی</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="tab-container">
+                <div class="tab" data-tab="backup" data-lang="en">Backup</div>
+                <div class="tab urdu" data-tab="backup" data-lang="ur">بیک اپ</div>
+                <div class="tab" data-tab="restore" data-lang="en">Restore</div>
+                <div class="tab urdu" data-tab="restore" data-lang="ur">بحالی</div>
+            </div>
+            <div class="tab-content active" data-tab="backup">
+                <p data-lang="en">Create a backup of all your papers and settings.</p>
+                <p class="urdu" data-lang="ur">اپنے تمام پیپرز اور ترتیبات کا بیک اپ بنائیں۔</p>
+                <button id="create-backup-btn" data-lang="en">Create Backup</button>
+                <button id="create-backup-btn-ur" class="urdu" data-lang="ur">بیک اپ بنائیں</button>
+            </div>
+            <div class="tab-content" data-tab="restore">
+                <p data-lang="en">Restore your papers from a backup file.</p>
+                <p class="urdu" data-lang="ur">بیک اپ فائل سے اپنے پیپرز کو بحال کریں۔</p>
+                <input type="file" id="restore-file" accept=".json">
+                <button id="restore-backup-btn" data-lang="en">Restore</button>
+                <button id="restore-backup-btn-ur" class="urdu" data-lang="ur">بحال کریں</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" data-lang="en">Password Protection</div>
+                <div class="modal-title urdu" data-lang="ur">پاس ورڈ پروٹیکشن</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="paper-password" data-lang="en">Enter Password</label>
+                <label for="paper-password" class="urdu" data-lang="ur">پاس ورڈ درج کریں</label>
+                <input type="password" id="paper-password">
+            </div>
+            <button id="confirm-password-btn" data-lang="en">Confirm</button>
+            <button id="confirm-password-btn-ur" class="urdu" data-lang="ur">تصدیق کریں</button>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Your existing JavaScript code, including the fixed addSection function
+        // No changes needed here unless you want to add additional error handling
+    </script>
+    <script>
+        // Your existing Cloudflare script
+    </script>
+</body>
+</html>

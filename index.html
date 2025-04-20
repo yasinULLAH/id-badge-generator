@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Badge Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #ff6b6b;
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #dddddd;
+            --accent-color: #ffd166;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+            }
+
+            .form-container {
+                flex: 1;
+            }
+
+            .preview-container {
+                flex: 1;
+                position: sticky;
+                top: 20px;
+            }
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .form-container, .preview-container, .customization-container {
+            background-color: var(--bg-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #3a5a80;
+        }
+
+        .badge {
+				width: 100%;
+				max-width: 380px;
+				height: fit-content;
+				margin: 0 auto;
+				border-radius: 12px;
+				overflow: hidden;
+				display: flex;
+				flex-direction: column;
+				position: relative;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+				background-color: var(--bg-color);
+			}
+
+        .badge-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .badge-event-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .badge-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .badge-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            margin: 10px auto;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 5px solid var(--border-color);
+        }
+
+        .badge-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .badge-photo-placeholder {
+            color: #999;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .badge-details {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .badge-name {
+            font-size: 26px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .badge-designation {
+            font-size: 18px;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .badge-company {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .badge-access {
+            display: inline-block;
+            padding: 5px 15px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .badge-id {
+            font-size: 14px;
+            color: #777;
+            margin-top: 5px;
+        }
+
+        .badge-qr {
+            margin: 10px auto;
+            text-align: center;
+        }
+
+        .badge-footer {
+            padding: 15px;
+            background-color: #f5f5f5;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .customization-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .color-option label {
+            margin-right: 10px;
+            width: 150px;
+        }
+
+        .color-option input {
+            width: 50px;
+            height: 30px;
+            padding: 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .template-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .template {
+            min-width: 100px;
+            height: 150px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .template.active {
+            border-color: var(--primary-color);
+        }
+
+        .template-header {
+            height: 30px;
+        }
+
+        .template-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .template-photo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+
+        .template-text {
+            height: 5px;
+            width: 80%;
+            background-color: #ddd;
+            margin: 2px 0;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .badge, .badge * {
+                visibility: visible;
+            }
+            
+            .badge {
+                position: absolute;
+                left: 0;
+                top: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1>Event Badge Generator</h1>
+            <form id="badge-form">
+                <div class="form-group">
+                    <label for="event-name">Event Name*</label>
+                    <input type="text" id="event-name" required>
+                    <p class="error" id="event-name-error">Event name is required</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="attendee-name">Attendee Name*</label>
+                    <input type="text" id="attendee-name" required>
+                    <p class="error" id="attendee-name-error">Attendee name is required</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="designation">Designation</label>
+                    <input type="text" id="designation">
+                </div>
+                
+                <div class="form-group">
+                    <label for="company">Company</label>
+                    <input type="text" id="company">
+                </div>
+                
+                <div class="form-group">
+                    <label for="access-level">Access Level*</label>
+                    <select id="access-level" required>
+                        <option value="">Select access level</option>
+                        <option value="VIP">VIP</option>
+                        <option value="Speaker">Speaker</option>
+                        <option value="Attendee">Attendee</option>
+                        <option value="Staff">Staff</option>
+                        <option value="Media">Media</option>
+                        <option value="Exhibitor">Exhibitor</option>
+                    </select>
+                    <p class="error" id="access-level-error">Access level is required</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="photo">Photo (Optional)</label>
+                    <input type="file" id="photo" accept="image/*">
+                </div>
+                
+                <button type="button" id="download-badge">Download Badge</button>
+                <button type="button" id="print-badge">Print Badge</button>
+            </form>
+            
+            <div class="customization-section">
+                <h2>Customize Badge</h2>
+                
+                <div class="form-group">
+                    <label>Badge Template</label>
+                    <div class="template-options">
+                        <div class="template active" data-template="standard">
+                            <div class="template-header" style="background-color: var(--primary-color);"></div>
+                            <div class="template-body">
+                                <div class="template-photo"></div>
+                                <div class="template-text"></div>
+                                <div class="template-text" style="width: 60%;"></div>
+                                <div class="template-text" style="width: 40%;"></div>
+                            </div>
+                        </div>
+                        <div class="template" data-template="minimal">
+                            <div class="template-body" style="background-color: #f9f9f9;">
+                                <div class="template-photo"></div>
+                                <div class="template-text"></div>
+                                <div class="template-text" style="width: 60%;"></div>
+                                <div class="template-text" style="width: 40%;"></div>
+                            </div>
+                        </div>
+                        <div class="template" data-template="modern">
+                            <div class="template-body" style="background-color: #fff;">
+                                <div class="template-text" style="width: 90%; height: 8px;"></div>
+                                <div class="template-photo"></div>
+                                <div class="template-text"></div>
+                                <div class="template-text" style="width: 50%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Colors</label>
+                    <div class="color-picker">
+                        <div class="color-option">
+                            <label for="primary-color">Primary Color:</label>
+                            <input type="color" id="primary-color" value="#4a6fa5">
+                        </div>
+                        <div class="color-option">
+                            <label for="secondary-color">Secondary Color:</label>
+                            <input type="color" id="secondary-color" value="#ff6b6b">
+                        </div>
+                        <div class="color-option">
+                            <label for="bg-color">Background Color:</label>
+                            <input type="color" id="bg-color" value="#ffffff">
+                        </div>
+                        <div class="color-option">
+                            <label for="text-color">Text Color:</label>
+                            <input type="color" id="text-color" value="#333333">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-container">
+            <h2>Badge Preview</h2>
+            <div id="badge" class="badge">
+                <div class="badge-header">
+                    <div class="badge-event-name">Event Name</div>
+                </div>
+                <div class="badge-content">
+                    <div class="badge-photo">
+                        <div class="badge-photo-placeholder">No photo</div>
+                    </div>
+                    <div class="badge-details">
+                        <div class="badge-name">Attendee Name</div>
+                        <div class="badge-designation">Designation</div>
+                        <div class="badge-company">Company</div>
+                        <div class="badge-access">Access Level</div>
+                        <div class="badge-id">ID: 000000</div>
+                    </div>
+                    <div class="badge-qr" id="qrcode"></div>
+                </div>
+                <div class="badge-footer">
+                    <div id="current-date"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize QR code library
+        qrcode.stringToBytes = function(s) {
+            let bytes = [];
+            for (let i = 0; i < s.length; i++) {
+                bytes.push(s.charCodeAt(i));
+            }
+            return bytes;
+        };
+
+        // Generate a random badge ID
+        function generateBadgeId() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // Update current date
+        function updateDate() {
+            const now = new Date();
+            document.getElementById('current-date').textContent = now.toLocaleDateString();
+        }
+        
+        // Initialize badge and form
+        const badgeId = generateBadgeId();
+        updateDate();
+        document.querySelector('.badge-id').textContent = `ID: ${badgeId}`;
+
+        // Form elements
+        const eventNameInput = document.getElementById('event-name');
+        const attendeeNameInput = document.getElementById('attendee-name');
+        const designationInput = document.getElementById('designation');
+        const companyInput = document.getElementById('company');
+        const accessLevelInput = document.getElementById('access-level');
+        const photoInput = document.getElementById('photo');
+        
+        // Preview elements
+        const eventNamePreview = document.querySelector('.badge-event-name');
+        const attendeeNamePreview = document.querySelector('.badge-name');
+        const designationPreview = document.querySelector('.badge-designation');
+        const companyPreview = document.querySelector('.badge-company');
+        const accessLevelPreview = document.querySelector('.badge-access');
+        const photoPreview = document.querySelector('.badge-photo');
+        
+        // Customization elements
+        const primaryColorInput = document.getElementById('primary-color');
+        const secondaryColorInput = document.getElementById('secondary-color');
+        const bgColorInput = document.getElementById('bg-color');
+        const textColorInput = document.getElementById('text-color');
+        const templates = document.querySelectorAll('.template');
+        
+        // Buttons
+        const downloadButton = document.getElementById('download-badge');
+        const printButton = document.getElementById('print-badge');
+
+        // Generate QR code
+        function generateQRCode() {
+            const qrCodeData = {
+                eventName: eventNameInput.value || 'Event Name',
+                attendeeName: attendeeNameInput.value || 'Attendee Name',
+                designation: designationInput.value || 'Designation',
+                company: companyInput.value || 'Company',
+                accessLevel: accessLevelInput.value || 'Access Level',
+                badgeId: badgeId,
+                date: new Date().toLocaleDateString()
+            };
+            
+            const qrCodeContainer = document.getElementById('qrcode');
+            qrCodeContainer.innerHTML = '';
+            
+            const qr = qrcode(0, 'M');
+            qr.addData(JSON.stringify(qrCodeData));
+            qr.make();
+            qrCodeContainer.innerHTML = qr.createImgTag(4);
+        }
+
+        // Update badge preview
+        function updatePreview() {
+            eventNamePreview.textContent = eventNameInput.value || 'Event Name';
+            attendeeNamePreview.textContent = attendeeNameInput.value || 'Attendee Name';
+            designationPreview.textContent = designationInput.value || 'Designation';
+            companyPreview.textContent = companyInput.value || 'Company';
+            accessLevelPreview.textContent = accessLevelInput.value || 'Access Level';
+            
+            generateQRCode();
+        }
+
+        // Input event listeners for real-time preview
+        eventNameInput.addEventListener('input', updatePreview);
+        attendeeNameInput.addEventListener('input', updatePreview);
+        designationInput.addEventListener('input', updatePreview);
+        companyInput.addEventListener('input', updatePreview);
+        accessLevelInput.addEventListener('change', updatePreview);
+
+        // Photo upload handler
+        photoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    photoPreview.innerHTML = `<img src="${e.target.result}" alt="Attendee Photo">`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                photoPreview.innerHTML = `<div class="badge-photo-placeholder">No photo</div>`;
+            }
+        });
+
+        // Color customization
+        primaryColorInput.addEventListener('input', function() {
+            document.documentElement.style.setProperty('--primary-color', this.value);
+        });
+        
+        secondaryColorInput.addEventListener('input', function() {
+            document.documentElement.style.setProperty('--secondary-color', this.value);
+        });
+        
+        bgColorInput.addEventListener('input', function() {
+            document.documentElement.style.setProperty('--bg-color', this.value);
+        });
+        
+        textColorInput.addEventListener('input', function() {
+            document.documentElement.style.setProperty('--text-color', this.value);
+        });
+
+        // Template selection
+        templates.forEach(template => {
+            template.addEventListener('click', function() {
+                // Remove active class from all templates
+                templates.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked template
+                this.classList.add('active');
+                
+                const templateType = this.dataset.template;
+                const badge = document.getElementById('badge');
+                
+                // Apply template style
+                switch(templateType) {
+                    case 'minimal':
+                        badge.style.borderRadius = '0';
+                        document.querySelector('.badge-header').style.display = 'none';
+                        document.querySelector('.badge-content').style.backgroundColor = '#f9f9f9';
+                        document.querySelector('.badge-footer').style.display = 'none';
+                        break;
+                    case 'modern':
+                        badge.style.borderRadius = '12px';
+                        document.querySelector('.badge-header').style.display = 'block';
+                        document.querySelector('.badge-header').style.borderBottomLeftRadius = '50px';
+                        document.querySelector('.badge-header').style.borderBottomRightRadius = '50px';
+                        document.querySelector('.badge-content').style.backgroundColor = '#fff';
+                        document.querySelector('.badge-footer').style.display = 'block';
+                        break;
+                    default: // standard
+                        badge.style.borderRadius = '12px';
+                        document.querySelector('.badge-header').style.display = 'block';
+                        document.querySelector('.badge-header').style.borderRadius = '0';
+                        document.querySelector('.badge-content').style.backgroundColor = '#fff';
+                        document.querySelector('.badge-footer').style.display = 'block';
+                        break;
+                }
+            });
+        });
+
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+            
+            if (!eventNameInput.value) {
+                document.getElementById('event-name-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('event-name-error').style.display = 'none';
+            }
+            
+            if (!attendeeNameInput.value) {
+                document.getElementById('attendee-name-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('attendee-name-error').style.display = 'none';
+            }
+            
+            if (!accessLevelInput.value) {
+                document.getElementById('access-level-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('access-level-error').style.display = 'none';
+            }
+            
+            return isValid;
+        }
+
+        // Download badge as PNG
+        downloadButton.addEventListener('click', function() {
+            if (!validateForm()) return;
+            
+            html2canvas(document.getElementById('badge')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `badge-${badgeId}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        });
+
+        // Print badge
+        printButton.addEventListener('click', function() {
+            if (!validateForm()) return;
+            window.print();
+        });
+
+        // Initialize preview
+        updatePreview();
+    </script>
+</body>
+</html>
